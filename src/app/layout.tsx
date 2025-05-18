@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "BrainCanvas",
-  description: "BrainCanvas - A Mind Map Builder",
+  title: "BrainCanvas - A Mind Map Builder",
+  description: "BrainCanvas - A Mind Map Builder for your thoughts. Build your mind map with ease. Made with ❤️ by Aditya Sharma. Proudly Made in India for the world.",
 };
 
 export default function RootLayout({
