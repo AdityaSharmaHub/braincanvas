@@ -2,6 +2,9 @@
 
 BrainCanvas is a modern, interactive mind mapping application built with Next.js and TypeScript. It provides an intuitive interface for creating, editing, and organizing your thoughts through visual mind maps.
 
+![image](https://github.com/user-attachments/assets/f60208f3-f484-47f5-af10-874d95c277f7)
+
+
 ## Features
 
 - 🎨 **Interactive Canvas**: Drag and zoom functionality for easy navigation
