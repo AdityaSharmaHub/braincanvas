@@ -109,9 +109,10 @@ export function MindMapCanvas() {
   return (
     <div
       ref={canvasRef}
-      className="relative w-full h-full bg-background"
+      className="relative w-full h-full bg-background mind-map-canvas"
       onClick={handleCanvasClick}
       onMouseDown={handleCanvasMouseDown}
+      data-export="true"
     >
       <div className="absolute inset-0 bg-[radial-gradient(#ddd_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_70%,transparent_100%)]" />
       

@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { MindMapData, MindMapNode, Position, MindMapConnection } from '@/types/mind-map'
 import { v4 as uuidv4 } from 'uuid'
+import html2canvas from 'html2canvas'
+import { downloadFile } from '@/utils/download'
 
 interface MindMapState extends MindMapData {
   title: string
@@ -44,16 +46,37 @@ interface MindMapStore extends HistoryState {
 
 const useMindMapStore = create<MindMapStore>((set, get) => ({
   past: [],
-  present: {
-    nodes: {},
-    connections: {},
-    rootNodeId: null,
-    zoom: 1,
-    isAnyNodeEditing: false,
-    justBlurredFromNode: false,
-    title: 'Untitled Mind Map',
-    canvasOffset: { x: 0, y: 0 },
-  },
+  present: (() => {
+    // Try to load saved data from localStorage
+    try {
+      const savedData = localStorage.getItem('mindMapData');
+      if (savedData) {
+        const { title, data } = JSON.parse(savedData);
+        return {
+          ...data,
+          zoom: 1,
+          isAnyNodeEditing: false,
+          justBlurredFromNode: false,
+          title: title || 'Untitled Mind Map',
+          canvasOffset: { x: 0, y: 0 },
+        };
+      }
+    } catch (error) {
+      console.error('Error loading saved mind map:', error);
+    }
+
+    // Return default state if no saved data or error
+    return {
+      nodes: {},
+      connections: {},
+      rootNodeId: null,
+      zoom: 1,
+      isAnyNodeEditing: false,
+      justBlurredFromNode: false,
+      title: 'Untitled Mind Map',
+      canvasOffset: { x: 0, y: 0 },
+    };
+  })(),
   future: [],
 
   addNode: (parentId, position) => {
@@ -309,26 +332,102 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
     };
   }),
 
-  // Persistence actions (placeholder)
+  // Persistence actions
   saveMindMap: () => {
-    console.log('Saving mind map...');
-    // TODO: Implement save logic (e.g., to local storage or a backend)
-  },
-
-  exportAsPng: () => {
-    console.log('Exporting as PNG...');
-    // TODO: Implement PNG export logic
-  },
-
-  exportAsJson: () => {
-    console.log('Exporting as JSON...');
-    // TODO: Implement JSON export logic
     const { nodes, connections, rootNodeId, title } = get().present;
     const mindMapData: MindMapData = { nodes, connections, rootNodeId };
     const exportData = { title, data: mindMapData };
     const jsonString = JSON.stringify(exportData, null, 2);
-    console.log(jsonString);
-    // TODO: Provide JSON file to user for download
+    
+    // Save to localStorage
+    localStorage.setItem('mindMapData', jsonString);
+  },
+
+  exportAsPng: async () => {
+    try {
+      // Create a new canvas element
+      const exportCanvas = document.createElement('canvas');
+      const ctx = exportCanvas.getContext('2d');
+      if (!ctx) return;
+
+      // Get the current mind map state
+      const { nodes, connections, zoom } = get().present;
+      
+      // Set canvas size
+      exportCanvas.width = window.innerWidth;
+      exportCanvas.height = window.innerHeight;
+
+      // Fill white background
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+      // Draw connections
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 2;
+      Object.values(connections).forEach(connection => {
+        const sourceNode = nodes[connection.sourceId];
+        const targetNode = nodes[connection.targetId];
+        if (!sourceNode || !targetNode) return;
+
+        const startX = sourceNode.position.x * zoom;
+        const startY = sourceNode.position.y * zoom;
+        const endX = targetNode.position.x * zoom;
+        const endY = targetNode.position.y * zoom;
+
+        // Draw curved line
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        const cp1x = startX + (endX - startX) * 0.5;
+        const cp1y = startY - 50;
+        const cp2x = startX + (endX - startX) * 0.5;
+        const cp2y = endY + 50;
+        ctx.bezierCurveTo(cp1x, cp1y, cp2x, cp2y, endX, endY);
+        ctx.stroke();
+      });
+
+      // Draw nodes
+      Object.values(nodes).forEach(node => {
+        const x = node.position.x * zoom;
+        const y = node.position.y * zoom;
+
+        // Draw node background
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(x, y, 120, 40, 8);
+        ctx.fill();
+        ctx.stroke();
+
+        // Draw node text
+        ctx.fillStyle = '#000000';
+        ctx.font = '14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(node.title, x + 60, y + 20);
+      });
+
+      // Convert to blob and download
+      exportCanvas.toBlob((blob) => {
+        if (blob) {
+          const title = get().present.title || 'mind-map';
+          downloadFile(blob, `${title}.png`, 'image/png');
+        }
+      }, 'image/png');
+
+    } catch (error) {
+      console.error('Error exporting as PNG:', error);
+    }
+  },
+
+  exportAsJson: () => {
+    const { nodes, connections, rootNodeId, title } = get().present;
+    const mindMapData: MindMapData = { nodes, connections, rootNodeId };
+    const exportData = { title, data: mindMapData };
+    const jsonString = JSON.stringify(exportData, null, 2);
+    
+    const filename = `${title || 'mind-map'}.json`;
+    downloadFile(jsonString, filename, 'application/json');
   },
 
   setCanvasOffset: (offset) => {
