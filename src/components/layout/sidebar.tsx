@@ -116,7 +116,7 @@ export function Sidebar() {
           </div>
 
           {/* Export Tools */}
-          <div className="mt-auto flex flex-col items-center gap-2">
+          <div className="mt-auto flex flex-col items-center gap-2 mb-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="icon" onClick={exportAsPng}>
