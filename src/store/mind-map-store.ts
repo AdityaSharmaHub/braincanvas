@@ -20,7 +20,7 @@ interface HistoryState {
 
 interface MindMapStore extends HistoryState {
   // Actions
-  addNode: (parentId: string | null, position: Position) => void
+  addNode: (parentId: string | null, position: Position, type?: 'text' | 'image' | 'link') => void
   updateNodePosition: (nodeId: string, position: Position) => void
   updateNodeTitle: (nodeId: string, title: string) => void
   deleteNode: (nodeId: string) => void
@@ -42,6 +42,11 @@ interface MindMapStore extends HistoryState {
   exportAsPng: () => void
   exportAsJson: () => void
   setCanvasOffset: (offset: Position) => void
+  // Node actions
+  updateNodeStyle: (nodeId: string, style: Partial<MindMapNode['style']>) => void
+  updateNodeContent: (nodeId: string, content: MindMapNode['content']) => void
+  // Canvas actions
+  clearMindMap: () => void
 }
 
 const useMindMapStore = create<MindMapStore>((set, get) => ({
@@ -79,15 +84,28 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
   })(),
   future: [],
 
-  addNode: (parentId, position) => {
+  addNode: (parentId, position, type = 'text') => {
     const id = uuidv4()
     const newNode: MindMapNode = {
       id,
       type: parentId === null ? 'root' : 'child',
-      title: 'New Node',
+      title: type === 'text' ? 'New Node' : type === 'image' ? 'New Image' : 'New Link',
       position,
       parentId,
       children: [],
+      content: {
+        type,
+        value: ''
+      },
+      style: {
+        color: '#000000',
+        backgroundColor: '#ffffff',
+        fontSize: 14,
+        fontWeight: 'normal',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+        borderRadius: 8
+      }
     }
 
     console.log('Adding new node:', newNode)
@@ -439,6 +457,55 @@ const useMindMapStore = create<MindMapStore>((set, get) => ({
     }));
     // We might not want to save a snapshot on every minor drag movement,
     // but rather only on drag end. Let's hold off on saveSnapshot here.
+  },
+
+  updateNodeStyle: (nodeId, style) => {
+    set(state => ({
+      present: {
+        ...state.present,
+        nodes: {
+          ...state.present.nodes,
+          [nodeId]: {
+            ...state.present.nodes[nodeId],
+            style: {
+              ...state.present.nodes[nodeId].style,
+              ...style,
+            },
+          },
+        },
+      },
+    }));
+    get().saveSnapshot();
+  },
+
+  updateNodeContent: (nodeId, content) => {
+    set(state => ({
+      present: {
+        ...state.present,
+        nodes: {
+          ...state.present.nodes,
+          [nodeId]: {
+            ...state.present.nodes[nodeId],
+            content,
+          },
+        },
+      },
+    }));
+    get().saveSnapshot();
+  },
+
+  clearMindMap: () => {
+    set(state => ({
+      present: {
+        ...state.present,
+        nodes: {},
+        connections: {},
+        rootNodeId: null,
+        zoom: 1,
+        canvasOffset: { x: 0, y: 0 },
+      },
+    }));
+    get().saveSnapshot();
   },
 }))
 

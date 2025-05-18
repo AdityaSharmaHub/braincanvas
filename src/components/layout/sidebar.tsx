@@ -1,189 +1,185 @@
 "use client"
 
-import { useState } from "react"
-import { 
-  Plus, 
-  Type, 
-  Image, 
-  Link, 
-  Palette, 
-  ZoomIn, 
-  ZoomOut, 
-  Maximize,
-  ChevronRight,
-  ChevronLeft
-} from "lucide-react"
+import { useCallback, useState } from "react"
+import useMindMapStore from "@/store/mind-map-store"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import useMindMapStore from "@/store/mind-map-store"
+import {
+  Type,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  ZoomIn,
+  ZoomOut,
+  Maximize,
+  Download,
+  FileJson,
+  PenToolIcon,
+  Trash2,
+} from "lucide-react"
 
 export function Sidebar() {
-  const [isExpanded, setIsExpanded] = useState(false)
-  const { zoomIn, zoomOut, resetView } = useMindMapStore()
+  const { addNode, zoomIn, zoomOut, resetView, exportAsPng, exportAsJson, clearMindMap } = useMindMapStore()
+
+  const handleAddNode = useCallback((type: "text" | "image" | "link") => {
+    // Add node at center of viewport
+    const viewportCenter = {
+      x: window.innerWidth / 2,
+      y: window.innerHeight / 2,
+    }
+    addNode(null, viewportCenter, type)
+  }, [addNode])
 
   return (
     <>
       {/* Desktop Sidebar */}
-      <div 
-        className={`fixed left-4 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col gap-2 transition-all duration-200 ${
-          isExpanded ? "w-48" : "w-12"
-        }`}
-      >
-        <div className="bg-background/80 backdrop-blur-sm border rounded-lg shadow-lg p-2 flex flex-col gap-2">
+      <div className="fixed left-0 top-0 z-40 h-screen w-16 border-r bg-background p-2 hidden md:block">
+        <div className="flex h-full flex-col items-center gap-4">
+
+          <div className="my-4">
+            <PenToolIcon className="w-5 h-5 text-primary" />
+          </div>
+
+          <div className="w-6 h-[1px] bg-border" />
+
           {/* Node Creation Tools */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-full justify-start items-center gap-2">
-                  <Plus className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Add Node</span>}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleAddNode("text")}
+                >
+                  <Type className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right">Add Node</TooltipContent>
+              <TooltipContent side="right">Add Text Node</TooltipContent>
             </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-full justify-start gap-2">
-                  <Type className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Text</span>}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleAddNode("image")}
+                >
+                  <ImageIcon className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right">Add Text</TooltipContent>
+              <TooltipContent side="right">Add Image Node</TooltipContent>
             </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-full justify-start gap-2">
-                  <Image className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Image</span>}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleAddNode("link")}
+                >
+                  <LinkIcon className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right">Add Image</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-full justify-start gap-2">
-                  <Link className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Link</span>}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Add Link</TooltipContent>
+              <TooltipContent side="right">Add Link Node</TooltipContent>
             </Tooltip>
           </div>
 
-          <div className="h-[1px] bg-border my-1" />
-
-          {/* Style Tools */}
-          <div className="flex flex-col gap-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="w-full justify-start gap-2">
-                  <Palette className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Style</span>}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Style</TooltipContent>
-            </Tooltip>
-          </div>
-
-          <div className="h-[1px] bg-border my-1" />
+          <div className="w-6 h-[1px] bg-border" />
 
           {/* View Controls */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col items-center gap-2">
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="w-full justify-start gap-2"
-                  onClick={zoomIn}
-                >
-                  <ZoomIn className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Zoom In</span>}
+                <Button variant="ghost" size="icon" onClick={zoomIn}>
+                  <ZoomIn className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right">Zoom In</TooltipContent>
             </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="w-full justify-start gap-2"
-                  onClick={zoomOut}
-                >
-                  <ZoomOut className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Zoom Out</span>}
+                <Button variant="ghost" size="icon" onClick={zoomOut}>
+                  <ZoomOut className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right">Zoom Out</TooltipContent>
             </Tooltip>
+
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="w-full justify-start gap-2"
-                  onClick={resetView}
-                >
-                  <Maximize className="h-4 w-4 ml-1.5" />
-                  {isExpanded && <span>Reset View</span>}
+                <Button variant="ghost" size="icon" onClick={resetView}>
+                  <Maximize className="h-5 w-5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right">Reset View</TooltipContent>
             </Tooltip>
           </div>
 
-          {/* Expand/Collapse Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="w-full justify-start gap-2 mt-2"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
-            {isExpanded ? (
-              <ChevronLeft className="h-4 w-4 ml-1.5" />
-            ) : (
-              <ChevronRight className="h-4 w-4 ml-1.5" />
-            )}
-            {isExpanded && <span>Collapse</span>}
-          </Button>
+          {/* Export Tools */}
+          <div className="mt-auto flex flex-col items-center gap-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={exportAsPng}>
+                  <Download className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Export as PNG</TooltipContent>
+            </Tooltip>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" onClick={exportAsJson}>
+                  <FileJson className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Export as JSON</TooltipContent>
+            </Tooltip>
+
+            <div className="w-6 h-[1px] bg-border my-2" />
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={clearMindMap}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Reset Canvas</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </div>
 
       {/* Mobile Bottom Bar */}
-      <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 md:hidden">
-        <div className="bg-background/80 backdrop-blur-sm border rounded-full shadow-lg p-2">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Plus className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Type className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Image className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Link className="h-4 w-4" />
-            </Button>
-            <div className="h-8 w-[1px] bg-border" />
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8"
-              onClick={zoomIn}
-            >
-              <ZoomIn className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8"
-              onClick={zoomOut}
-            >
-              <ZoomOut className="h-4 w-4" />
-            </Button>
-          </div>
+      <div className="fixed bottom-0 left-0 z-40 w-full border-t bg-background p-2 md:hidden">
+        <div className="flex items-center justify-around">
+          <Button variant="ghost" size="icon" onClick={() => handleAddNode("text")}>
+            <Type className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => handleAddNode("image")}>
+            <ImageIcon className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => handleAddNode("link")}>
+            <LinkIcon className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={zoomIn}>
+            <ZoomIn className="h-5 w-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={zoomOut}>
+            <ZoomOut className="h-5 w-5" />
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={clearMindMap}
+            className="text-destructive hover:text-destructive"
+          >
+            <Trash2 className="h-5 w-5" />
+          </Button>
         </div>
       </div>
     </>

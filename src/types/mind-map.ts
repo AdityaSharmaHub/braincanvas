@@ -15,6 +15,13 @@ export interface MindMapNode {
     backgroundColor?: string
     fontSize?: number
     fontWeight?: string
+    borderColor?: string
+    borderWidth?: number
+    borderRadius?: number
+  }
+  content?: {
+    type: 'text' | 'image' | 'link'
+    value: string
   }
 }
 
