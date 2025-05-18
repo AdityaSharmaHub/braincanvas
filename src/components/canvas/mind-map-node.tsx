@@ -20,7 +20,8 @@ export function MindMapNode({ node }: MindMapNodeProps) {
   const nodeRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const editorRef = useRef<any>(null)
-  const { updateNodePosition, updateNodeTitle, deleteNode, zoom, setIsAnyNodeEditing, setJustBlurredFromNode } = useMindMapStore()
+  const { updateNodePosition, updateNodeTitle, deleteNode, setIsAnyNodeEditing, setJustBlurredFromNode, present } = useMindMapStore()
+  const { zoom } = present; // Access zoom from present
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent canvas click
@@ -39,8 +40,9 @@ export function MindMapNode({ node }: MindMapNodeProps) {
   const handleMouseMove = (e: MouseEvent) => {
     if (!isDragging || !nodeRef.current) return
 
-    const x = e.clientX - dragOffset.x
-    const y = e.clientY - dragOffset.y
+    // Scale mouse movement by current zoom level
+    const x = (e.clientX - dragOffset.x) / zoom;
+    const y = (e.clientY - dragOffset.y) / zoom;
 
     updateNodePosition(node.id, { x, y })
   }
@@ -117,8 +119,8 @@ export function MindMapNode({ node }: MindMapNodeProps) {
         isDragging ? 'cursor-grabbing' : 'cursor-grab'
       }`}
       style={{
-        left: node.position.x,
-        top: node.position.y,
+        left: node.position.x * zoom, // Scale left position
+        top: node.position.y * zoom, // Scale top position
         transform: `scale(${zoom})`,
         transformOrigin: 'center',
       }}
